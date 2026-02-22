@@ -43,9 +43,3 @@ Current User Input
 
 ---
 
-## 🛠 How to Run
-
-1. Install Ollama
-2. Pull model:
-   ```bash
-   ollama pull llama3:8b
