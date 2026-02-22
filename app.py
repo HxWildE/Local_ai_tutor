@@ -1,4 +1,6 @@
 import requests
+import json
+import time
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "llama3:8b"
@@ -40,27 +42,54 @@ def ask_llm(prompt):
     payload = {
         "model": MODEL,
         "prompt": prompt ,
-        "stream": False
+        "stream": True
+        #for Streaming Output like GPT Style
     }
-    response = requests.post(OLLAMA_URL, json=payload)
-    return response.json()["response"]
+    response = requests.post(OLLAMA_URL, json=payload,stream=True)
+
+    full_response =""
+    for line in response.iter_lines():
+    
+        if line:
+            decoded = json.loads(line.decode("utf-8"))
+            token = decoded.get("response","")
+            for char in token:
+                print(char, end="", flush=True)
+                if char in ".!?":
+                    time.sleep(0.2)
+                else:
+                    time.sleep(0.02)
+                
+            full_response += token
+
+    return full_response
+
+def save_to_file(user_input,full_reply):
+    #saves Converstional History to a File
+    with open("chat_history.txt","a",encoding="utf-8") as f:
+        f.write(f" User :{user_input} \n")
+        f.write(f" Ai :{full_reply} \n\n ")
+        
 
 def chat_loop():
     print("Local AI Tutor (type 'exit' to quit)\n")
 
     while True:
-        user_input = input("You: ")
+        user_input = input("\nYou: ")
 
         if user_input.lower() == "exit":
             print("Bye 👋")
             break
 
         new_input = build_prompt(user_input)
+        print("Tutor : ",end="")
+        
         reply = ask_llm(new_input)
 
         conversational_history.append(("User",user_input))
         conversational_history.append(("Tutor",reply))
-        print("\nTutor:", reply, "\n")
+
+        save_to_file(user_input,reply)
 
 if __name__ == "__main__":
     chat_loop()
