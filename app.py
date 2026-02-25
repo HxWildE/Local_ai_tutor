@@ -5,6 +5,8 @@ import time
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "llama3:8b"
 
+#its an AI server based architecture
+
 SYSTEM_PROMPT = """
 YOU ARE A CONCERSATIONAL AI TUTOR.
 SO LISTEN CLOSELY AND BE ATTENTIVE.
@@ -36,8 +38,6 @@ Tutor:
     
     return new_prompt
    
-
-
 def ask_llm(prompt):
     payload = {
         "model": MODEL,

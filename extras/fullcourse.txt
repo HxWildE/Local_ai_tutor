@@ -1,0 +1,16 @@
+local_ai_tutor/
+│
+├── data/
+│   └── syllabus.txt
+│
+├── vector_store/
+│   ├── index.faiss
+│   └── chunks.pkl
+│
+├── index.py        # Build embeddings + FAISS index
+├── rag.py          # Retrieval + prompt builder
+├── llm.py          # Handles Ollama interaction
+├── guard.py        # Strict syllabus enforcement
+├── app.py          # CLI or API entry point
+│
+└── requirements.txt
