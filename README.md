@@ -43,3 +43,5 @@ Current User Input
 
 ---
 
+Added the Rag functionality full pipeline
+
