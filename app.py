@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+from rag import retrieve_context
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "llama3:8b"
@@ -17,26 +18,6 @@ Keep explanations structured.
 If the student seems confused, simplify further."""
 
 conversational_history = []
-
-def build_prompt(user_input):
-
-    history_text = "" 
-    for role,message in conversational_history:
-        history_text = f"{role} : {message}"
-
-    new_prompt = f""" 
-
-SYSTEM_PROMPT 
-
-Conversation SO far: {history_text}
-
-User : {user_input}
-
-Tutor: 
-
-"""
-    
-    return new_prompt
    
 def ask_llm(prompt):
     payload = {
@@ -81,10 +62,30 @@ def chat_loop():
             print("Bye 👋")
             break
 
-        new_input = build_prompt(user_input)
-        print("Tutor : ",end="")
-        
-        reply = ask_llm(new_input)
+        context = retrieve_context(user_input)
+
+        if context is None:
+            print("Tutor: Not in syllabus.")
+            continue
+
+        prompt = f"""
+        You are a strict syllabus-bound AI tutor.
+        Answer ONLY from the context below.
+
+        Context:
+        {context}
+
+        Conversation so far:
+        {conversational_history}
+
+        User:
+        {user_input}
+
+        Tutor:
+        """
+
+        print("Tutor : ", end="")
+        reply = ask_llm(prompt)
 
         conversational_history.append(("User",user_input))
         conversational_history.append(("Tutor",reply))

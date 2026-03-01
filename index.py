@@ -16,6 +16,7 @@ embeddings = model.encode(chunks)
 
 dimension = embeddings.shape[1]
 index = faiss.IndexFlatL2(dimension)
+# It stores L2 distance (Euclidean distance).
 index.add(np.array(embeddings))
 
 # Save index

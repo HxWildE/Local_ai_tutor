@@ -14,3 +14,52 @@ local_ai_tutor/
 ├── app.py          # CLI or API entry point
 │
 └── requirements.txt
+
+MIN NOTES:
+    What D I stores from faiss retrival -> the best matched chunks by distances
+    D.shape = (num_queries, k)
+    I.shape = (num_queries, k)
+
+    D = [[0.45, 0.88, 1.02]]
+    I = [[5,    2,    9   ]]
+
+#we will adjust threshold based on model data and testing ...it varies on how its built and how it functions....
+
+    User question → embedding →
+    Compare to all syllabus embeddings →
+    FAISS returns k closest →
+    We check best distance →
+    If good → send to LLM
+    If bad → refuse
+
+Problem with L2 distance?
+
+Sentence embeddings are about direction, not magnitude.
+Cosine similarity measures:
+
+Which basically means:  How aligned are the vectors, Not how far apart in space.
+Same direction, different length → Cosine = high similarity
+Different direction → Cosine = low similarity
+
+For sentence embeddings: (Cosuine Similarity Range)
+0.85+ → Very similar
+0.70–0.85 → Good match
+0.50–0.70 → Weak
+< 0.50 → Probably unrelated
+
+How it happens in FAISS:
+FAISS does NOT directly compute cosine.
+
+Instead:
+Normalize vectors (make length = 1)  and Use inner product
+
+When vectors are normalized:   Inner Product = Cosine Similarity
+
+So:  IndexFlatIP  +  normalized vectors  = cosine similarity search     
+
+Two things chnages:
+
+During indexing → normalize embeddings
+During querying → normalize query embedding
+Switch index type to IndexFlatIP
+Change threshold logic (because now higher is better)
