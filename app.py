@@ -65,24 +65,34 @@ def chat_loop():
         context = retrieve_context(user_input)
 
         if context is None:
-            print("Tutor: Not in syllabus.")
-            continue
+            prompt = f"""
+            {SYSTEM_PROMPT}
 
-        prompt = f"""
-        You are a strict syllabus-bound AI tutor.
-        Answer ONLY from the context below.
+            Conversation so far:
+            {conversational_history}
 
-        Context:
-        {context}
+            User:
+            {user_input}
 
-        Conversation so far:
-        {conversational_history}
+            Tutor:
+            """
+        else:
+            prompt = f"""
+            You are a strict syllabus-bound AI tutor.
+            Answer ONLY from the context below and also use your own
+            brain . try to be near as possible to Context. 
 
-        User:
-        {user_input}
+            Context:
+            {context}
 
-        Tutor:
-        """
+            Conversation so far:
+            {conversational_history}
+
+            User:
+            {user_input}
+
+            Tutor:
+            """
 
         print("Tutor : ", end="")
         reply = ask_llm(prompt)

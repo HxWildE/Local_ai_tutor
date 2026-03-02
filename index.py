@@ -2,7 +2,9 @@ import faiss
 import pickle
 import numpy as np
 from sentence_transformers import SentenceTransformer
+import os
 
+os.makedirs("vector_store", exist_ok=True)
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Load syllabus
@@ -13,11 +15,11 @@ chunks = text.split("\n\n")
 
 # Create embeddings
 embeddings = model.encode(chunks)
+embeddings = embeddings / np.linalg.norm(embeddings,axis = 1, keepdims=True)
 
-dimension = embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-# It stores L2 distance (Euclidean distance).
-index.add(np.array(embeddings))
+index = faiss.IndexFlatIP(384)
+# It stores Cosines actually (stance).
+index.add(embeddings)
 
 # Save index
 faiss.write_index(index, "vector_store/index.faiss")
