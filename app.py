@@ -4,7 +4,6 @@ import time
 from rag import retrieve_context
 
 
-# fix 
 # the 
 # documents 
 # rag issue
@@ -15,7 +14,7 @@ MODEL = "llama3:8b"
 #its an AI server based architecture
 
 SYSTEM_PROMPT = """
-YOU ARE A CONCERSATIONAL AI TUTOR.
+YOU ARE A CONVERSATIONAL AI TUTOR.
 SO LISTEN CLOSELY AND BE ATTENTIVE.
 ANSWER WELL AND PRECISE.
 Explain concepts clearly.
