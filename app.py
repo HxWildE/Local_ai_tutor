@@ -4,8 +4,7 @@ import time
 from rag import retrieve_context
 
 
-# the 
-# documents 
+# fix the documents 
 # rag issue
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
@@ -83,9 +82,9 @@ def chat_loop():
             """
         else:
             prompt = f"""
-            You are a strict syllabus-bound AI tutor.
-            Answer ONLY from the context below and also use your own
-            brain . try to be near as possible to Context. 
+            {SYSTEM_PROMPT}
+
+            Use the context below to answer.
 
             Context:
             {context}
