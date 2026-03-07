@@ -2,7 +2,7 @@ import requests
 import json
 import time
 from rag import retrieve_context
-
+from index import browse_and_add
 
 # fix the documents 
 # rag issue
@@ -66,6 +66,12 @@ def chat_loop():
             print("Bye 👋")
             break
 
+        
+        if user_input.strip() == "/upload":
+            print("Opening File Browser ")
+            browse_and_add()
+            continue # Browse and Upload feature 
+
         context = retrieve_context(user_input)
 
         if context is None:
@@ -109,4 +115,6 @@ def chat_loop():
 if __name__ == "__main__":
     chat_loop()
 
+# (name == main ?) ->It means:  “Run this code only if this file is being executed directly.”
+    # Not when the file is imported into another file.
     

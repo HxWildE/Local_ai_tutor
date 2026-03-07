@@ -21,14 +21,11 @@ def load_vector_store():
     if not os.path.exists(INDEX_PATH) or not os.path.exists(CHUNKS_PATH):
         from index import build_index
         build_index()
-
     index = faiss.read_index(INDEX_PATH)
     
     with open(CHUNKS_PATH, "rb") as f:
-        chunks = pickle.load(f)
-            
+        chunks = pickle.load(f)         
     return index,chunks 
-
 # used the function here
 index, chunks = load_vector_store()
 
@@ -47,7 +44,5 @@ def retrieve_context(question):
 
     if cosine < threshold:
         return None
-
     retrieved = "\n\n".join([chunks[i] for i in I[0]])
-    
     return retrieved

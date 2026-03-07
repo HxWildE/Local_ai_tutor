@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import os
+from tkinter import Tk,filedialog
 
 def build_index():
     os.makedirs("vector_store", exist_ok=True)
@@ -28,6 +29,62 @@ def build_index():
     # Save chunks separately
     with open("vector_store/chunks.pkl", "wb") as f:
         pickle.dump(chunks, f)
+
+def add_document(file_path):
+
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    if not os.path.exists(file_path):
+        print("File not found")
+        return
+
+    print(f"Indexing: {file_path}")
+
+    # read file
+    with open(file_path, "r", encoding="utf-8") as f:
+        text = f.read()
+
+    chunks = text.split("\n\n")
+
+    embeddings = model.encode(chunks)
+    embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
+
+    # load existing index
+    index = faiss.read_index("vector_store/index.faiss")
+
+    # load existing chunks
+    with open("vector_store/chunks.pkl", "rb") as f:
+        old_chunks = pickle.load(f)
+
+    index.add(embeddings)
+
+    old_chunks.extend(chunks)
+
+    # save updated index
+    faiss.write_index(index, "vector_store/index.faiss")
+
+    with open("vector_store/chunks.pkl", "wb") as f:
+        pickle.dump(old_chunks, f)
+
+    print(f"Added {len(chunks)} chunks")
+
+def browse_and_add():
+    root = Tk()
+    root.withdraw()
+
+# withdraw()    → hides the blank window
+# If we didn’t hide it, you'd see an ugly empty tkinter window behind the file picker.
+    
+    file_path = filedialog.askopenfilename(
+        title="Select files to Upload",
+        filetypes = [("Text files","*.txt"),("All files","*.*")]
+    )
+
+    if file_path:
+        add_document(file_path)
+    else:
+        print("No file selected")
+    
 
 if __name__ == "__main__":
     build_index()
