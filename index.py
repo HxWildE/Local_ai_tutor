@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import os
+from pypdf import PdfReader
 from tkinter import Tk,filedialog
 
 def build_index():
@@ -40,9 +41,15 @@ def add_document(file_path):
 
     print(f"Indexing: {file_path}")
 
-    # read file
-    with open(file_path, "r", encoding="utf-8") as f:
-        text = f.read()
+        # read file
+    ext = os.path.splitext(file_path)[1]
+
+    if ext == ".pdf":  #check fr PDF extension
+        text = read_pdf(file_path)
+
+    else:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            text = f.read()
 
     chunks = text.split("\n\n")
 
@@ -85,6 +92,18 @@ def browse_and_add():
     else:
         print("No file selected")
     
+def read_pdf(file_path):
+    reader = PdfReader(file_path)
+    text = ""
+
+    for page in reader.pages:
+        #fetch each page from pdf , extraxt its text part 
+        # No image handling inside  
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text
+
+    return text    
 
 if __name__ == "__main__":
     build_index()
