@@ -29,20 +29,30 @@ def load_vector_store():
 # used the function here
 index, chunks = load_vector_store()
 
-def retrieve_context(question):
+def retrieve_context(question, k=5):
 
     if index is None:
         return None
 
     q_embedding = model.encode([question])
-    q_embedding = q_embedding /np.linalg.norm(q_embedding,axis = 1, keepdims=True)
- 
-    D, I = index.search(q_embedding, k=3)
-# D is already cosine similarity.
-    cosine = D[0][0]
-    threshold = 0.85
+    q_embedding = q_embedding / np.linalg.norm(q_embedding, axis=1, keepdims=True)
 
-    if cosine < threshold:
+    D, I = index.search(q_embedding, k=k)
+    print("Similarity scores:", D)
+    # print("Similarity scores:", D)
+
+    threshold = 0.40
+    #experimented score
+
+    retrieved_chunks = []
+
+    for score, idx in zip(D[0], I[0]):
+        if score >= threshold:
+            retrieved_chunks.append(chunks[idx])
+            #return all chunks that are above a threshold
+            
+    if not retrieved_chunks:
         return None
-    retrieved = "\n\n".join([chunks[i] for i in I[0]])
-    return retrieved
+
+    return "\n\n".join(retrieved_chunks)
+

@@ -72,7 +72,14 @@ def chat_loop():
             browse_and_add()
             continue # Browse and Upload feature 
 
+        # context = retrieve_context(user_input,7)hey
+#experiment
         context = retrieve_context(user_input)
+
+        print("\n--- CONTEXT SENT TO MODEL ---")
+        print(context)
+        print("------------------------------\n")
+#    Experiment
 
         if context is None:
             prompt = f"""
@@ -114,6 +121,7 @@ def chat_loop():
 
 if __name__ == "__main__":
     chat_loop()
+
 
 # (name == main ?) ->It means:  “Run this code only if this file is being executed directly.”
     # Not when the file is imported into another file.
