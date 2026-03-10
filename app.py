@@ -102,7 +102,7 @@ def chat_loop():
             Context:
             {context}
 
-            Conversation so far:
+            Conversation unti now:
             {conversational_history}
 
             User:
