@@ -6,8 +6,10 @@ import faiss
 import pickle
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from sentence_transformers import CrossEncoder
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 INDEX_PATH = "vector_store/index.faiss"
 CHUNKS_PATH = "vector_store/chunks.pkl"
@@ -29,7 +31,8 @@ def load_vector_store():
 # used the function here
 index, chunks = load_vector_store()
 
-def retrieve_context(question, k=5):
+
+def retrieve_context(question):
 
     if index is None:
         return None
@@ -37,22 +40,20 @@ def retrieve_context(question, k=5):
     q_embedding = model.encode([question])
     q_embedding = q_embedding / np.linalg.norm(q_embedding, axis=1, keepdims=True)
 
-    D, I = index.search(q_embedding, k=k)
-    print("Similarity scores:", D)
-    # print("Similarity scores:", D)
+    D, I = index.search(q_embedding, k=7)
 
-    threshold = 0.40
-    #experimented score
+    retrieved_chunks = [chunks[i] for i in I[0] if i < len(chunks)]
 
-    retrieved_chunks = []
+    # reranking
+    pairs = [(question, chunk) for chunk in retrieved_chunks]
+    scores = reranker.predict(pairs)
 
-    for score, idx in zip(D[0], I[0]):
-        if score >= threshold:
-            retrieved_chunks.append(chunks[idx])
-            #return all chunks that are above a threshold
-            
-    if not retrieved_chunks:
-        return None
+    ranked = sorted(
+        zip(retrieved_chunks, scores),
+        key=lambda x: x[1],
+        reverse=True
+    )
 
-    return "\n\n".join(retrieved_chunks)
+    top_chunks = [chunk for chunk, _ in ranked[:3]]
 
+    return "\n\n".join(top_chunks)

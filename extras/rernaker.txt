@@ -1,0 +1,32 @@
+User question
+      ↓
+Embedding
+      ↓
+FAISS → top 10 chunks (fast)
+      ↓
+Reranker → best 3 chunks (accurate)
+      ↓
+LLM
+
+But rerankers use a Cross-Encoder.
+Instead of separate vectors, they process both texts together.
+
+Input to reranker:
+[Question + Chunk]
+
+Example input:
+Question: How are CNNs used in computer vision?
+Chunk:
+Convolutional neural networks are widely used in image classification.
+
+The model reads both at once and outputs a score like:
+Relevance score = 8.2
+
+This is much more accurate.
+
+slower
+but extremely precise
+
+leads to better answers
+fewer hallucinations
+more precise responses

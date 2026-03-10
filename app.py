@@ -73,14 +73,10 @@ def chat_loop():
             continue # Browse and Upload feature 
 
         # context = retrieve_context(user_input,7)hey
-#experiment
+
         context = retrieve_context(user_input)
 
-        print("\n--- CONTEXT SENT TO MODEL ---")
-        print(context)
-        print("------------------------------\n")
-#    Experiment
-
+        
         if context is None:
             prompt = f"""
             {SYSTEM_PROMPT}
