@@ -1,133 +1,252 @@
 # 🧠 Local AI Tutor (RAG + Ollama)
 
-A local AI Tutor built using:
+A **fully local Retrieval-Augmented Generation (RAG) AI Tutor** built using modern LLM infrastructure.
+The system retrieves relevant knowledge from a vector database and injects it into prompts before generating responses with a local LLM.
 
-- 🦙 Ollama (LLaMA 3 8B)
-- 🔍 FAISS (Vector Search)
-- 🧠 Sentence Transformers (Embeddings)
-- 🐍 Python
-
-This project demonstrates a complete Retrieval-Augmented Generation (RAG) pipeline running fully offline.
+Runs **100% offline** with no external APIs.
 
 ---
 
-## 🚀 Features
+# ⚙️ Tech Stack
 
-- Local LLM inference via Ollama
-- Document indexing using FAISS
-- Cosine similarity based semantic retrieval
-- Context injection into prompts
-- Streaming output (ChatGPT-like effect)
-- Fallback to pure LLM if no RAG available
-- Persistent chat history logging
+* 🦙 Ollama — Local LLM inference
+* 🤖 LLaMA 3 (8B) — Core language model
+* 🔍 FAISS — Vector similarity search
+* 🧠 Sentence Transformers — Text embeddings
+* 🐍 Python — System implementation
 
 ---
 
-## 📂 Project Structure
-local_ai_tuto/
+# 🚀 Features
+
+### 📚 Local Knowledge Retrieval
+
+Documents are embedded and stored inside a FAISS vector database for semantic search.
+
+### 🔎 Cosine Similarity Search
+
+Embeddings are **L2 normalized** and searched using **Inner Product**, making:
+
+```
+dot_product == cosine_similarity
+```
+
+### 🧠 Context-Aware Responses
+
+Relevant retrieved context is injected into the prompt before generation.
+
+### ⚡ Real-Time Streaming
+
+Responses stream token-by-token from the LLM for a **ChatGPT-like experience**.
+
+### 🧯 Intelligent Fallback
+
+If retrieved context is not relevant (below similarity threshold), the system automatically falls back to **pure LLM generation**.
+
+### 💾 Conversation Logging
+
+All conversations are saved locally for inspection and debugging.
+
+---
+
+# 📂 Project Structure
+
+```
+local_ai_tutor/
 │
-├── app.py # Main chat loop
-├── rag.py # Retrieval logic
-├── index.py # Vector store builder
+├── app.py              # Main interactive chat loop
+├── rag.py              # Retrieval pipeline
+├── index.py            # Vector database builder
 │
 ├── documents/
-│ └── data.txt # Source knowledge file
+│   └── data.txt        # Knowledge source
 │
 ├── vector_store/
-│ ├── index.faiss # FAISS index
-│ └── chunks.pkl # Stored text chunks
+│   ├── index.faiss     # FAISS vector index
+│   └── chunks.pkl      # Stored text chunks
 │
-└── chat_history.txt # Saved conversations\
-
-
----
-
-## 🔄 How It Works
-
-### 1️⃣ Indexing Phase
-
-- Documents are split into chunks
-- Embeddings generated using `all-MiniLM-L6-v2`
-- Embeddings are L2 normalized
-- Stored in FAISS using Inner Product (IP)
-- Since vectors are normalized:
-  
-  dot product = cosine similarity
+└── chat_history.txt    # Conversation logs
+```
 
 ---
 
-### 2️⃣ Retrieval Phase
+# 🔄 System Architecture
 
-When user asks a question:
-
-- Query embedding is generated
-- Query is L2 normalized
-- FAISS returns top-k matches
-- Cosine similarity threshold is applied
-- If relevant → context injected
-- If not → fallback to normal LLM
+The system works in **three main stages**.
 
 ---
 
-### 3️⃣ Generation Phase
+# 1️⃣ Indexing Phase
 
-Prompt structure:
+Documents are converted into searchable vectors.
 
-- System instruction
-- Retrieved context (if available)
-- Conversation history
-- User query
+Process:
 
-LLM streams response in real time.
+1. Split documents into smaller **semantic chunks**
+2. Generate embeddings using:
 
----
+```
+all-MiniLM-L6-v2
+```
 
-## 🧮 Cosine Similarity Logic
+3. Apply **L2 normalization**
 
-Because embeddings are normalized:
-cosine(A, B) = A · B
-FAISS uses:
-IndexFlatIP(384)
-Which directly returns cosine similarity scores.
+```
+v = v / ||v||
+```
 
----
+4. Store vectors inside FAISS using:
 
----
+```
+IndexFlatIP
+```
 
-## 🧠 Future Improvements
+Because vectors are normalized:
 
-- Web interface (FastAPI / Flask)
-- Auto re-index on document update
-- Conversation memory windowing
-- Token usage control
-- Multi-document upload support
-- UI formatting with Rich library
+```
+A · B = cosine similarity
+```
 
----
-
-## 🎯 Learning Goals of This Project
-
-- Understand RAG architecture
-- Understand FAISS vector search
-- Understand cosine similarity vs L2
-- Build production-style local AI system
-- Handle fallback logic gracefully
+This allows extremely **fast semantic retrieval**.
 
 ---
 
-## ⚡ Author
+# 2️⃣ Retrieval Phase
 
-Built as part of deep learning into:
-- LLM systems
-- Vector databases
-- Retrieval architectures
-- Production AI design
+When a user asks a question:
+
+1. Generate query embedding
+2. Normalize query vector
+3. Search FAISS for **top-k most similar chunks**
+4. Apply similarity threshold
+5. If relevant → return context
+6. If not → fallback to normal LLM
+
+This prevents **hallucinations from irrelevant context**.
 
 ---
 
-## 🏁 Status
+# 3️⃣ Generation Phase
 
-✅ Local RAG working  
-✅ Cosine threshold implemented  
-✅ Streaming output enabled  
-🚧 Improvements ongoing  
+The final prompt contains:
+
+```
+System Prompt
++
+Retrieved Context (if available)
++
+Conversation History
++
+User Query
+```
+
+The LLM then generates the answer **while streaming tokens live**.
+
+---
+
+# 🧮 Cosine Similarity Optimization
+
+Instead of computing cosine similarity directly:
+
+```
+cos(A,B) = (A · B) / (||A|| ||B||)
+```
+
+We normalize vectors beforehand:
+
+```
+A = A / ||A||
+B = B / ||B||
+```
+
+Which simplifies to:
+
+```
+cos(A,B) = A · B
+```
+
+This allows FAISS to perform **very fast similarity search** using only dot products.
+
+---
+
+# ⚡ Performance Characteristics
+
+| Component             | Role                            |
+| --------------------- | ------------------------------- |
+| FAISS                 | Fast vector similarity search   |
+| Sentence Transformers | Lightweight embeddings          |
+| Ollama                | Local LLM inference             |
+| Streaming API         | Token-level response generation |
+
+The pipeline is optimized for **low-latency local inference**.
+
+---
+
+# 🧠 Learning Goals of This Project
+
+This project was built to deeply understand:
+
+* Retrieval-Augmented Generation (RAG)
+* Vector search systems
+* Embedding models
+* Cosine similarity vs L2 distance
+* Prompt engineering with context injection
+* Local LLM deployment
+* AI system architecture
+
+---
+
+# 🧠 Future Improvements
+
+Planned upgrades:
+
+### 🌐 Interface
+
+* Web UI using **FastAPI / Flask**
+* Chat interface
+
+### 📚 Retrieval Improvements
+
+* Multi-document ingestion
+* Automatic re-indexing
+* Metadata filtering
+
+### 🧠 Advanced RAG
+
+* Cross-encoder reranking
+* Hybrid search (BM25 + vector)
+* Multi-query retrieval
+
+### ⚡ Performance
+
+* True token streaming from Ollama API
+* Chunk caching
+* Query batching
+
+---
+
+# 🏁 Current Status
+
+| Feature                       | Status |
+| ----------------------------- | ------ |
+| Local LLM inference           | ✅      |
+| FAISS vector database         | ✅      |
+| Cosine similarity search      | ✅      |
+| Context injection             | ✅      |
+| Token streaming               | ✅      |
+| Similarity threshold fallback | ✅      |
+| Conversation logging          | ✅      |
+| Reranking pipeline            | 🚧     |
+
+---
+
+# ⚡ Author
+
+Built as part of deep exploration into:
+
+* Local LLM systems
+* Vector databases
+* Retrieval architectures
+* Production AI pipelines
+
+---
