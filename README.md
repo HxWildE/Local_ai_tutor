@@ -3,7 +3,7 @@
 A **fully local Retrieval-Augmented Generation (RAG) AI Tutor** built using modern LLM infrastructure.
 The system retrieves relevant knowledge from a vector database and injects it into prompts before generating responses with a local LLM.
 
-Runs **100% offline** with no external APIs.
+Runs **100% offline** with no external API s.
 
 ---
 
