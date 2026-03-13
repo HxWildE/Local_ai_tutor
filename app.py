@@ -109,7 +109,7 @@ def chat_loop():
 
         print("Tutor : ", end="")
         reply = ask_llm(prompt)
-
+        print("\n \n")
         conversational_history.append(("User",user_input))
         conversational_history.append(("Tutor",reply))
 

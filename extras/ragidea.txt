@@ -1,8 +1,0 @@
-
-rag_project/
-│
-├── index.py
-├── rag.py
-├── documents/
-│   └── data.txt
-└── vector_store/
