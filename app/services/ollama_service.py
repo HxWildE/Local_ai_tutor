@@ -4,7 +4,11 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "llama3:8b"
 
 
-def generate_response(message: str, history: list) -> str:
+def generate_response(
+    message: str,
+    history: list,
+    context: str
+) -> str:
 
     conversation = ""
 
@@ -13,6 +17,13 @@ def generate_response(message: str, history: list) -> str:
 
     prompt = f"""
 You are a conversational AI tutor.
+
+Use the retrieved context below when it is relevant to the user's question.
+If the context does not contain the answer, answer using your general knowledge.
+Do not invent information from the context.
+
+Retrieved context:
+{context}
 
 Conversation history:
 {conversation}
