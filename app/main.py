@@ -1,46 +1,16 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
+from app.schemas import ChatRequest, ChatResponse
+from app.services.ollama_service import generate_response
 
-from app.config import OLLAMA_BASE_URL, OLLAMA_MODEL
-from app.ollama_client import OllamaClient
+app = FastAPI()
 
-
-app = FastAPI(
-    title="Local AI Tutor",
-    version="2.0.0",
-    description="Local AI tutoring backend powered by Ollama",
-)
-
-ollama = OllamaClient(
-    base_url=OLLAMA_BASE_URL,
-    model=OLLAMA_MODEL,
-)
-
-
-class ChatRequest(BaseModel):
-    message: str
-
-
-class ChatResponse(BaseModel):
-    response: str
-
-
-@app.get("/health")
-def health_check():
-    return {
-        "status": "ok",
-        "model": OLLAMA_MODEL,
-    }
+@app.get("/")
+def root():
+    return {"message": "Local AI Tutor API is running"}
 
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    try:
-        response = ollama.generate(request.message)
-        return ChatResponse(response=response)
+    response = generate_response(request.message)
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"LLM service error: {str(e)}",
-        )
+    return ChatResponse(response=response)
