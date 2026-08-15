@@ -7,12 +7,13 @@ from pypdf import PdfReader
 from tkinter import Tk,filedialog
 
 def build_index():
+
     os.makedirs("vector_store", exist_ok=True)
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
     # Load syllabus
     with open("documents/data.txt", "r", encoding="utf-8") as f:
-            text = f.read()
+        text = f.read()
 
     chunks = text.split("\n\n")
 
@@ -23,7 +24,6 @@ def build_index():
     index = faiss.IndexFlatIP(384)
     # It stores Cosines actually (manualll ypassed 384 dimensions).
     index.add(embeddings)
-
     # Save index
     faiss.write_index(index, "vector_store/index.faiss")
 
