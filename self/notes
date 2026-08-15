@@ -3,3 +3,19 @@ start ollama serve in cmd
 fix it to run in vs direclty --s m path problem 
 
 start venv always
+__________________________________________
+class ChatRequest(BaseModel):
+    message: str
+
+BaseModel kya hai?  BaseModel Pydantic ka base class hai.
+
+Hum keh rahe hain: "Pydantic, mujhe ek data structure define karna hai jiska naam ChatRequest hai. Iske andar jo incoming data aayega usme message naam ka field hona chahiye aur uski type str honi chahiye."
+class ChatResponse(BaseModel):
+    response: str
+    Ye incoming request nahi, balki hamare API ka output structure define karta hai.
+
+Humne endpoint mein:
+    @app.post("/chat", response_model=ChatResponse)  likha hai.
+      Meaning:  /chat endpoint jo response return karega, uska expected structure ChatResponse hai.
+      
+Ye sirf data schema/model hai.Naam ChatRequest humne diya because this represents the data expected by our /chat API.
