@@ -17,15 +17,18 @@ def root():
 def chat(request: ChatRequest):
 
     history = get_history(request.conversation_id)
-
-    context = rag_service.retrieve_context(
+    if request.use_rag:
+        context = rag_service.retrieve_context(
         request.message
     )
+    else:
+        context = ""
 
     response = generate_response(
         request.message,
         history,
-        context
+        context,
+        request.mode
     )
 
     add_message(

@@ -19,3 +19,25 @@ Humne endpoint mein:
       Meaning:  /chat endpoint jo response return karega, uska expected structure ChatResponse hai.
       
 Ye sirf data schema/model hai.Naam ChatRequest humne diya because this represents the data expected by our /chat API.
+
+main.py
+   ↓
+rag_service
+   ↓
+ollama_service
+
+"I separated the API layer from application services so that retrieval, LLM interaction, and 
+memory management remain independently testable and maintainable."
+
+__________________________________________ X __________________________________________
+_load_vector_store()
+The underscore is a convention meaning:
+"This is an internal/helper method; users of this service normally shouldn't call it directly."
+
+Literal["tutor", "quiz", "interview"]
+
+Pydantic says:
+Only these three values are allowed.
+
+And:   = "tutor"  means Tutor is the default.
+This is input validation at the API boundary.
