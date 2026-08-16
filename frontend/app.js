@@ -114,20 +114,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let rawText = '';
-            let lastUpdate = Date.now();
-
-            function updateUI(force = false) {
-                const now = Date.now();
-                // Throttle updates to ~20fps to prevent robotic flickering
-                if (!force && now - lastUpdate < 50) return;
-                lastUpdate = now;
-
-                if (window.marked) {
+            function updateUI(final = false) {
+                // During stream, just use raw text for buttery smooth generation
+                // Only parse markdown on the final render to avoid layout shifting/flickering
+                if (window.marked && final) {
                     textContainer.innerHTML = marked.parse(rawText);
                 } else {
                     textContainer.textContent = rawText;
                 }
-                textContainer.appendChild(cursor);
+                
+                if (!final) {
+                    textContainer.appendChild(cursor);
+                }
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
@@ -136,12 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (done) break;
                 const chunk = decoder.decode(value, { stream: true });
                 rawText += chunk;
-                updateUI();
+                updateUI(false);
             }
 
             // Final render pass
             updateUI(true);
-            cursor.remove();
         } catch (err) {
             cursor.remove();
             textContainer.innerHTML += `<br><span style="color:#ef4444;">⚠️ Error: ${err.message}. Ensure backend & Ollama services are running.</span>`;
