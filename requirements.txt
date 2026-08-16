@@ -1,5 +1,10 @@
-faiss-cpu
-sentence-transformers
-numpy
+fastapi
+uvicorn
+pydantic
 requests
+sentence-transformers
+faiss-cpu
+numpy
+pypdf
+python-multipart
 tqdm

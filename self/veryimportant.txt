@@ -1,0 +1,49 @@
+# the thing is we are not only building v2, 
+# we are solvig natively very small but heavy effort and time taking problems
+# from V1... and in taht process learnigng so many things
+
+so that is one of the thigns we llfocus to tell about ...
+like we are solving for RAG CALLING DURING LOADIG OF VECTOR 
+STORE CHUNKS ...EVERYTIME WE DO THIS AT QUESTIONS ARRIVAL ,
+WE ARE IMPORTING AN ENTIRE EMBEDDED CHUNK RAG MODULE IT EVERYTIME.
+THATH TAKES MEMORY + TIME ABOE ALL..
+SO THIS IS WHERE WE DO :
+app/
+    services/
+        rag_service.py
+
+        IT WILL ITS OWN RETRIEVAL FROM TIME TO TIME 
+
+(
+    That should rag_service.py be responsible for?
+
+                Only this:
+
+                question
+                ↓
+                retrieve relevant context
+                ↓
+                return context
+
+It should NOT:
+
+call Ollama ❌
+manage conversation history ❌
+deal with HTTP requests ❌
+return FastAPI responses ❌
+
+That's separation of concerns.)
+
+Explain
+   → teach concept
+
+Quiz
+   → ask questions
+   → wait for answer
+   → evaluate
+
+Interview
+   → interviewer behavior
+   → ask one question
+   → evaluate response
+   → follow-up

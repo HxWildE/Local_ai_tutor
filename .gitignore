@@ -1,1 +1,37 @@
-self
+# Internal documentation (Git ignored as required)
+docs_internal/
+
+# Python Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+.env.local
+
+# Vector database storage & binary dumps
+vector_store/
+*.faiss
+*.pkl
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE & OS temporary files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Chat history logs
+chat_history.txt

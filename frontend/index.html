@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local AI Tutor - Intelligent Learning System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-text">
+                    <h2>Local AI Tutor</h2>
+                    <span class="version-tag">v1.0 • LLaMA3:8B</span>
+                </div>
+            </div>
+
+            <button class="new-chat-btn" id="newChatBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New Session
+            </button>
+
+            <div class="section-label">OPERATING MODE</div>
+            <div class="mode-selector">
+                <button class="mode-card active" data-mode="tutor">
+                    <div class="mode-icon">🎓</div>
+                    <div class="mode-info">
+                        <div class="mode-title">Tutor Mode</div>
+                        <div class="mode-desc">Detailed conceptual explanations & guidance</div>
+                    </div>
+                </button>
+
+                <button class="mode-card" data-mode="quiz">
+                    <div class="mode-icon">❓</div>
+                    <div class="mode-info">
+                        <div class="mode-title">Quiz Mode</div>
+                        <div class="mode-desc">Interactive testing & knowledge checks</div>
+                    </div>
+                </button>
+
+                <button class="mode-card" data-mode="interview">
+                    <div class="mode-icon">💼</div>
+                    <div class="mode-info">
+                        <div class="mode-title">Interview Mode</div>
+                        <div class="mode-desc">Mock technical interviews & probing questions</div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="section-label">KNOWLEDGE & TOOLS</div>
+            <div class="controls-card">
+                <div class="toggle-row">
+                    <div class="toggle-label">
+                        <span class="toggle-icon">🔍</span>
+                        <span>RAG Pipeline</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="ragToggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <button class="upload-btn" id="uploadModalBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Upload Document (.pdf/.txt)
+                </button>
+            </div>
+
+            <div class="system-status">
+                <div class="status-indicator online"></div>
+                <span>Backend: FastAPI • Vector Index: Active</span>
+            </div>
+        </aside>
+
+        <!-- Main Chat Container -->
+        <main class="chat-main">
+            <header class="chat-header">
+                <div class="current-mode-display">
+                    <span id="currentModeIcon">🎓</span>
+                    <span id="currentModeTitle">Tutor Mode</span>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-rag" id="ragBadge">RAG Enabled</span>
+                    <span class="badge badge-model">LLaMA3:8B</span>
+                </div>
+            </header>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <div class="welcome-icon">🧠</div>
+                    <h3>Welcome to Local AI Tutor</h3>
+                    <p>Your local, privacy-first AI learning assistant powered by LLaMA3:8B, FAISS vector search, and reranking.</p>
+                    <div class="capabilities-grid">
+                        <div class="cap-card">
+                            <strong>📚 Knowledge Retrieval</strong>
+                            <span>Queries custom documents indexed in FAISS vector store.</span>
+                        </div>
+                        <div class="cap-card">
+                            <strong>🧮 Calculator Simulation</strong>
+                            <span>Evaluates math expressions safely. Try: <code>calculate 2**10 + 50</code></span>
+                        </div>
+                        <div class="cap-card">
+                            <strong>📝 Summarizer Tool</strong>
+                            <span>Summarizes text content automatically. Try: <code>summarize [text]</code></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-wrapper">
+                <div class="input-container">
+                    <textarea id="userInput" placeholder="Ask a question, enter a calculation, or request a topic quiz..." rows="1"></textarea>
+                    <button id="sendBtn" class="send-btn" title="Send Message">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+                <div class="input-footer">
+                    <span>Press Enter to send, Shift+Enter for new line</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Upload Knowledge Document</h3>
+                <button class="close-modal-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Upload PDF or TXT files to dynamically index them into the FAISS vector database for RAG context retrieval.</p>
+                <div class="file-drop-zone" id="dropZone">
+                    <div class="drop-icon">📁</div>
+                    <p>Drag & Drop your file here or <strong>browse</strong></p>
+                    <input type="file" id="fileInput" accept=".pdf,.txt,.md" hidden>
+                </div>
+                <div class="upload-status" id="uploadStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
