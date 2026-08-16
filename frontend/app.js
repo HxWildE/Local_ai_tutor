@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let useRag = true;
     let isGenerating = false;
 
+    // Warm up the model by hitting the background warmup endpoint
+    fetch('/api/warmup').catch(() => {});
+
     // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
@@ -111,10 +114,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let rawText = '';
-            let renderScheduled = false;
+            let lastUpdate = Date.now();
 
-            // Optimizing rendering performance during streaming
-            function updateUI() {
+            function updateUI(force = false) {
+                const now = Date.now();
+                // Throttle updates to ~20fps to prevent robotic flickering
+                if (!force && now - lastUpdate < 50) return;
+                lastUpdate = now;
+
                 if (window.marked) {
                     textContainer.innerHTML = marked.parse(rawText);
                 } else {
@@ -122,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 textContainer.appendChild(cursor);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                renderScheduled = false;
             }
 
             while (true) {
@@ -130,16 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (done) break;
                 const chunk = decoder.decode(value, { stream: true });
                 rawText += chunk;
-
-                // Throttled UI updates using requestAnimationFrame to eliminate lag
-                if (!renderScheduled) {
-                    renderScheduled = true;
-                    requestAnimationFrame(updateUI);
-                }
+                updateUI();
             }
 
             // Final render pass
-            updateUI();
+            updateUI(true);
             cursor.remove();
         } catch (err) {
             cursor.remove();

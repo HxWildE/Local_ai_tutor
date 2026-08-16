@@ -25,6 +25,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import threading
+import requests
+from app.services.ollama_service import MODEL_NAME, OLLAMA_URL
+
+@app.get("/api/warmup")
+def warmup():
+    def ping_ollama():
+        try:
+            # Just send a tiny prompt to ensure model is loaded in VRAM
+            requests.post(OLLAMA_URL, json={"model": MODEL_NAME, "prompt": "hi", "stream": False}, timeout=10)
+        except:
+            pass
+    threading.Thread(target=ping_ollama).start()
+    return {"status": "warming up"}
+
 @app.get("/api/health")
 def health_check():
     return {
