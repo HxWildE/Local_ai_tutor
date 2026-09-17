@@ -1,125 +1,87 @@
-import requests
-import json
-import time
-from rag import retrieve_context
-from index import browse_and_add
+import streamlit as st
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
+from core.rag import retrieve_context
+from core.vector_index import add_document
 
-# fix the documents 
-# rag issue
+# Load Keys
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "llama3:8b"
+st.set_page_config(page_title="Cloud-Native AI Tutor", page_icon="🤖", layout="centered")
+st.title("🤖 Cloud-Native AI Tutor")
+st.markdown("A Serverless, Privacy-First RAG application powered by **Gemini Pro** and **Pinecone**.")
 
-#its an AI server based architecture
+if not GEMINI_API_KEY:
+    st.error("🔑 Gemini API Key not found! Please check your .env file.")
+    st.stop()
+
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-flash-latest')
 
 SYSTEM_PROMPT = """
 YOU ARE A CONVERSATIONAL AI TUTOR.
-SO LISTEN CLOSELY AND BE ATTENTIVE.
-ANSWER WELL AND PRECISE.
-Explain concepts clearly.
-Use examples.
+Explain concepts clearly. Use examples.
 Keep explanations structured.
-If the student seems confused, simplify further."""
+If the student seems confused, simplify further.
+ALWAYS base your answers on the provided context if available.
+"""
 
-conversational_history = []
-   
-def ask_llm(prompt):
-    payload = {
-        "model": MODEL,
-        "prompt": prompt,
-        "stream": True
-        
-        #for Streaming Output like GPT Style
-    }
-    response = requests.post(OLLAMA_URL, json=payload,stream=True)
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    full_response =""
-    for line in response.iter_lines():
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+def ask_llm_stream(prompt):
+    try:
+        response = model.generate_content(prompt, stream=True)
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
+    except Exception as e:
+        yield f"\n\n**Error connecting to Gemini API:** {str(e)}"
+
+if prompt := st.chat_input("Ask me anything or attach a PDF to index...", accept_file="multiple", file_type=["pdf", "txt"]):
     
-        if line:
-            decoded = json.loads(line.decode("utf-8"))
-            token = decoded.get("response","")
-            for char in token:
-                print(char, end="", flush=True)
-                if char in ".!?":
-                    time.sleep(0.2)
-                else:
-                    time.sleep(0.02)
+    # Handle file uploads if any are attached
+    if prompt.get("files"):
+        with st.spinner("Indexing documents to cloud..."):
+            os.makedirs("documents", exist_ok=True)
+            for uploaded_file in prompt["files"]:
+                temp_path = os.path.join("documents", uploaded_file.name)
+                with open(temp_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
                 
-            full_response += token
+                try:
+                    add_document(temp_path)
+                    st.success(f"✅ {uploaded_file.name} indexed successfully!")
+                except Exception as e:
+                    st.error(f"❌ Error indexing {uploaded_file.name}: {e}")
 
-    return full_response
+    # Handle chat text if any is provided
+    if prompt.text:
+        user_input = prompt.text
+        st.chat_message("user").markdown(user_input)
+        st.session_state.messages.append({"role": "user", "content": user_input})
 
-def save_to_file(user_input,full_reply):
-    #saves Converstional History to a File
-    with open("chat_history.txt","a",encoding="utf-8") as f:
-        f.write(f" User :{user_input} \n")
-        f.write(f" Ai :{full_reply} \n\n ")
+        with st.spinner("Searching Knowledge Base..."):
+            context = retrieve_context(user_input)
         
-
-def chat_loop():
-    print("Local AI Tutor (type 'exit' to quit)\n")
-
-    while True:
-        user_input = input("\nYou: ")
-
-        if user_input.lower() == "exit":
-            print("Bye 👋")
-            break
-
-        
-        if user_input.strip() == "/upload":
-            print("Opening File Browser ")
-            browse_and_add()
-            continue # Browse and Upload feature 
-
-        # context = retrieve_context(user_input,7)hey
-
-        context = retrieve_context(user_input)
-
-        
-        if context is None:
-            prompt = f"""
-            {SYSTEM_PROMPT}
-
-            Conversation so far:
-            {conversational_history}
-
-            User:
-            {user_input}
-
-            Tutor:
-            """
+        if context:
+            full_prompt = f"{SYSTEM_PROMPT}\n\nUse the context below to answer.\n\nContext:\n{context}\n\nUser:\n{user_input}\n\nTutor:"
         else:
-            prompt = f"""
-            {SYSTEM_PROMPT}
+            full_prompt = f"{SYSTEM_PROMPT}\n\nUser:\n{user_input}\n\nTutor:"
 
-            Use the context below to answer.
-
-            Context:
-            {context}
-
-            Conversation until now:
-            {conversational_history}
-
-            User:
-            {user_input}
-
-            Tutor:
-            """
-
-        print("Tutor : ", end="")
-        reply = ask_llm(prompt)
-        print("\n \n")
-        conversational_history.append(("User",user_input))
-        conversational_history.append(("Tutor",reply))
-
-        save_to_file(user_input,reply)
-
-if __name__ == "__main__":
-    chat_loop()
-
-
-# (name == main ?) ->It means:  “Run this code only if this file is being executed directly.”
-    # Not when the file is imported into another file.
-    
+        with st.chat_message("assistant"):
+            response_placeholder = st.empty()
+            full_response = ""
+            for chunk in ask_llm_stream(full_prompt):
+                full_response += chunk
+                response_placeholder.markdown(full_response + "▌")
+            response_placeholder.markdown(full_response)
+            
+        st.session_state.messages.append({"role": "assistant", "content": full_response})

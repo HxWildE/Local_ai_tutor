@@ -1,10 +1,6 @@
-fastapi
-uvicorn
-pydantic
-requests
-sentence-transformers
-faiss-cpu
-numpy
+﻿streamlit
+python-dotenv
+google-generativeai
+pinecone
 pypdf
-python-multipart
 tqdm
