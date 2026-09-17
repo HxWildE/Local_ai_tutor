@@ -175,7 +175,24 @@
 \section{\textbf{Personal Projects}}
 \resumeSubHeadingListStart
 
-% -------- PROJECT 1: Real-Time Chat Application --------
+% -------- PROJECT 1: Cloud-Native AI Tutor --------
+\resumeProject
+{ Cloud-Native AI Tutor }
+{\href{https://github.com/HxWildE/Local_ai_tutor}{  GitHub}}
+{}
+{Python · Google Gemini API · Pinecone DB · Streamlit · RAG · Cloud Hosting}
+
+\resumeItemListStart
+\item {\textbf{Built a serverless Retrieval-Augmented Generation (RAG) tutor} leveraging the \textbf{Google Gemini API} for high-speed response generation and semantic analysis, completely eliminating the need for heavy local LLMs.}
+\item {\textbf{Engineered a scalable vector search pipeline} by integrating \textbf{Pinecone Vector DB} for robust, cloud-based document indexing and highly efficient knowledge retrieval over large datasets.}
+\item {\textbf{Developed a flawless ChatGPT-like Streamlit UI} featuring native inline file attachments and a clean, distraction-free chat interface to optimize the end-user experience.}
+\item {\textbf{Architected for seamless cloud hosting} by decoupling the serverless backend from the frontend UI and managing dependencies, enabling zero-config deployment on platforms like \textbf{Streamlit Community Cloud}.}
+\resumeItemListEnd
+
+% ---------- BLACK LINE BETWEEN PROJECTS ----------
+\projectDivider
+
+% -------- PROJECT 2: Real-Time Chat Application --------
 \resumeProject
 { Real-Time Chat Application}
 {\href{https://github.com/HxWildE/ChatApp}{  GitHub}}
@@ -187,22 +204,6 @@
 \item {\textbf{Integrated Socket.IO} for bidirectional \textbf{WebSocket communication} — implemented live message delivery, real-time \textbf{online/offline user presence tracking}, and live typing indicators with \textbf{debounced emit logic} to minimize unnecessary network events.}
 \item {\textbf{Enforced modular server-side input validation} on auth endpoints using extracted \textbf{Zod schemas} to reject malformed payloads; secured passwords with \textbf{bcrypt} and protected routes via custom middleware that securely parses JWTs from \textbf{HTTP-only cookies}.}
 \item {\textbf{Built an image sharing pipeline} using \textbf{Cloudinary} for media uploads (profile pictures + in-chat images), with \textbf{base64-encoded FileReader} on the client streamed to Cloudinary's API on the server; implemented \textbf{unseen message counters} per conversation with \textbf{read-receipt tracking} (seen flag) updated in real time.}
-\resumeItemListEnd
-
-% ---------- BLACK LINE BETWEEN PROJECTS ----------
-\projectDivider
-
-% -------- PROJECT 2: Cloud-Native AI Tutor --------
-\resumeProject
-{ Cloud-Native AI Tutor }
-{\href{https://github.com/HxWildE/Local_ai_tutor}{  GitHub}}
-{}
-{Python · Google Gemini API · Pinecone DB · Streamlit · RAG}
-
-\resumeItemListStart
-\item {\textbf{Built a serverless Retrieval-Augmented Generation (RAG) tutor} leveraging the \textbf{Google Gemini API (gemini-flash-latest)} for high-speed response generation and semantic analysis.}
-\item {\textbf{Engineered a scalable vector search pipeline} by integrating \textbf{Pinecone Vector DB} for cloud-based document indexing, replacing local FAISS to ensure persistent and robust knowledge retrieval.}
-\item {\textbf{Developed a flawless, ChatGPT-like Streamlit UI} featuring native inline file attachments and a fully collapsed, distraction-free chat interface for optimal user experience.}
 \resumeItemListEnd
 
 \resumeSubHeadingListEnd
