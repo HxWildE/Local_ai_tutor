@@ -1,33 +1,30 @@
-# Use official slim Python runtime
-FROM python:3.10-slim
-
-# Prevent Python from writing .pyc files & enable unbuffered stdout
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+# Use the official Python lightweight image
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies needed for C compilation and FAISS
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install system dependencies (required for some Python packages)
+RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency requirements
+# Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy application source code and frontend
-COPY app ./app
-COPY frontend ./frontend
-COPY documents ./documents
-COPY index.py .
+# Copy the rest of the application
+COPY . .
 
-# Expose FastAPI application port
-EXPOSE 8000
+# Expose the Streamlit port
+EXPOSE 8501
 
-# Entrypoint command to start FastAPI app with uvicorn server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Healthcheck to verify the app is running
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+
+# Command to run the Streamlit application
+ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]

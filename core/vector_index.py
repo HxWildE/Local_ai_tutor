@@ -68,10 +68,23 @@ def add_document(file_path):
         print("Document is empty.")
         return
 
-    # Semantic Chunking (split by double newline, keeping meaningful paragraphs)
-    raw_chunks = [chunk.strip() for chunk in text.split("\n\n") if chunk.strip() and len(chunk.strip()) > 50]
+    # Semantic Chunking by character length with overlap
+    chunk_size = 1000
+    overlap = 200
+    raw_chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end].strip()
+        if len(chunk) > 50:
+            raw_chunks.append(chunk)
+        start += chunk_size - overlap
     
+    if not raw_chunks:
+        raise ValueError("Could not extract any meaningful text chunks from the document.")
+
     vectors_to_upsert = []
+    successful_upserts = 0
     
     for i, chunk in enumerate(raw_chunks):
         try:
@@ -89,6 +102,7 @@ def add_document(file_path):
             # Batch upsert every 50 chunks to avoid limits
             if len(vectors_to_upsert) >= 50:
                 index.upsert(vectors=vectors_to_upsert)
+                successful_upserts += len(vectors_to_upsert)
                 vectors_to_upsert = []
                 time.sleep(1) # Rate limit protection
                 
@@ -97,6 +111,14 @@ def add_document(file_path):
             
     # Upsert remaining chunks
     if vectors_to_upsert:
-        index.upsert(vectors=vectors_to_upsert)
+        try:
+            index.upsert(vectors=vectors_to_upsert)
+            successful_upserts += len(vectors_to_upsert)
+        except Exception as e:
+            print(f"Error upserting remaining chunks: {e}")
+            
+    if successful_upserts == 0:
+        raise RuntimeError("Failed to upload any chunks to Pinecone (possible rate limit or connection issue).")
         
-    print(f"Successfully uploaded {len(raw_chunks)} chunks to Pinecone!")
+    print(f"Successfully uploaded {successful_upserts} chunks to Pinecone!")
+

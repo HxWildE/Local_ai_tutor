@@ -1,0 +1,23 @@
+=========================================
+RESUME UPDATE GUIDE - CLOUD NATIVE RAG
+=========================================
+
+1. PROJECT TITLE:
+Cloud-Native Serverless RAG Tutor (or Smart Document Intelligence System)
+
+2. UPDATED TECH STACK TO LIST:
+Python, Streamlit, Google Gemini API, Pinecone (Vector DB), RAG (Retrieval-Augmented Generation), Prompt Engineering
+
+3. RESUME BULLET POINTS (Pick 2 or 3 depending on space):
+
+- Bullet 1 (Architecture):
+Architected a cloud-native, serverless Retrieval-Augmented Generation (RAG) application using Streamlit and Pinecone Vector DB, eliminating the need for local heavy-compute constraints.
+
+- Bullet 2 (AI Integration):
+Integrated Google Gemini Pro API and Generative Embeddings to process complex documents, ensuring highly accurate context retrieval and natural language generation for user queries.
+
+- Bullet 3 (Problem Solving/Optimization):
+Implemented strict prompt-engineering constraints and semantic chunking to drastically reduce LLM hallucination rates and improve response relevance for enterprise-grade PDF parsing.
+
+4. INTERVIEW PITCH (The One-Liner):
+"I built a fully serverless RAG application that allows users to upload documents and chat with them instantly. I used Pinecone to store the vector embeddings in the cloud and Google Gemini as the LLM engine to ensure rapid inference and high availability without relying on local GPU resources."

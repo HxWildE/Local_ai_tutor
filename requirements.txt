@@ -4,3 +4,4 @@ google-generativeai
 pinecone
 pypdf
 tqdm
+
