@@ -28,16 +28,20 @@ if PINECONE_API_KEY:
     except Exception as e:
         print(f"Warning: Could not connect to Pinecone index: {e}")
 
-def get_embedding(text, max_retries=5):
-    """Generate embedding using Google Gemini's embedding model with retries."""
+def get_embeddings(texts, max_retries=5):
+    """Generate embeddings using Google Gemini's embedding model with retries."""
     if not GEMINI_API_KEY:
         raise ValueError("Gemini API key is not set.")
     
+    # If a single string is passed, wrap it in a list
+    if isinstance(texts, str):
+        texts = [texts]
+        
     for attempt in range(max_retries):
         try:
             result = genai.embed_content(
                 model="models/gemini-embedding-001",
-                content=text,
+                content=texts,
                 task_type="retrieval_document",
                 title="Document chunk",
                 output_dimensionality=768
@@ -54,7 +58,7 @@ def get_embedding(text, max_retries=5):
             else:
                 raise e
     
-    raise RuntimeError("Failed to get embedding.")
+    raise RuntimeError("Failed to get embeddings.")
 
 def extract_text(file_path):
     """Extract text from PDF or TXT files."""
@@ -101,28 +105,36 @@ def add_document(file_path):
     vectors_to_upsert = []
     successful_upserts = 0
     
-    for i, chunk in enumerate(raw_chunks):
+    # Batch process embeddings to avoid hitting the 15 RPM Gemini free tier limit
+    batch_size = 50
+    vectors_to_upsert = []
+    successful_upserts = 0
+    
+    for i in range(0, len(raw_chunks), batch_size):
+        batch_chunks = raw_chunks[i:i + batch_size]
         try:
-            embedding = get_embedding(chunk)
-            # Pinecone requires unique IDs for each vector
-            vector_id = f"{os.path.basename(file_path)}-chunk-{i}-{int(time.time())}"
+            embeddings = get_embeddings(batch_chunks)
             
-            # We store the raw text as metadata so we can retrieve it later
-            vectors_to_upsert.append({
-                "id": vector_id,
-                "values": embedding,
-                "metadata": {"text": chunk, "source": os.path.basename(file_path)}
-            })
-            
-            # Batch upsert every 50 chunks to avoid limits
-            if len(vectors_to_upsert) >= 50:
-                index.upsert(vectors=vectors_to_upsert)
-                successful_upserts += len(vectors_to_upsert)
-                vectors_to_upsert = []
-                time.sleep(1) # Rate limit protection
+            for j, embedding in enumerate(embeddings):
+                chunk_index = i + j
+                chunk_text = batch_chunks[j]
                 
+                # Pinecone requires unique IDs for each vector
+                vector_id = f"{os.path.basename(file_path)}-chunk-{chunk_index}-{int(time.time())}"
+                
+                vectors_to_upsert.append({
+                    "id": vector_id,
+                    "values": embedding,
+                    "metadata": {"text": chunk_text, "source": os.path.basename(file_path)}
+                })
+                
+            # Upsert the batch to Pinecone
+            index.upsert(vectors=vectors_to_upsert)
+            successful_upserts += len(vectors_to_upsert)
+            vectors_to_upsert = []
+            
         except Exception as e:
-            print(f"Error processing chunk {i}: {e}")
+            print(f"Error processing batch {i} to {i+batch_size}: {e}")
             
     # Upsert remaining chunks
     if vectors_to_upsert:
