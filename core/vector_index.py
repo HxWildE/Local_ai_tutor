@@ -28,18 +28,33 @@ if PINECONE_API_KEY:
     except Exception as e:
         print(f"Warning: Could not connect to Pinecone index: {e}")
 
-def get_embedding(text):
-    """Generate embedding using Google Gemini's embedding model."""
+def get_embedding(text, max_retries=5):
+    """Generate embedding using Google Gemini's embedding model with retries."""
     if not GEMINI_API_KEY:
         raise ValueError("Gemini API key is not set.")
     
-    result = genai.embed_content(
-        model="models/embedding-001",
-        content=text,
-        task_type="retrieval_document",
-        title="Document chunk"
-    )
-    return result['embedding']
+    for attempt in range(max_retries):
+        try:
+            result = genai.embed_content(
+                model="models/gemini-embedding-001",
+                content=text,
+                task_type="retrieval_document",
+                title="Document chunk",
+                output_dimensionality=768
+            )
+            return result['embedding']
+        except Exception as e:
+            error_str = str(e).lower()
+            if "503" in error_str or "429" in error_str or "quota" in error_str or "demand" in error_str:
+                if attempt == max_retries - 1:
+                    raise e
+                wait_time = (2 ** attempt) + 1  # 2, 3, 5, 9 seconds
+                print(f"Gemini API rate limit/503 (attempt {attempt + 1}/{max_retries}). Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                raise e
+    
+    raise RuntimeError("Failed to get embedding.")
 
 def extract_text(file_path):
     """Extract text from PDF or TXT files."""

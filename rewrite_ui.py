@@ -1,4 +1,4 @@
-﻿import os
+import os
 
 file_path = 'app.py'
 
@@ -66,14 +66,27 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-def ask_llm_stream(prompt):
-    try:
-        response = model.generate_content(prompt, stream=True)
-        for chunk in response:
-            if chunk.text:
-                yield chunk.text
-    except Exception as e:
-        yield f"\\n\\n**Error connecting to Gemini API:** {str(e)}"
+def ask_llm_stream(prompt, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            response = model.generate_content(prompt, stream=True)
+            for chunk in response:
+                if chunk.text:
+                    yield chunk.text
+            return
+        except Exception as e:
+            error_str = str(e).lower()
+            if "503" in error_str or "429" in error_str or "quota" in error_str or "demand" in error_str:
+                if attempt == max_retries - 1:
+                    yield f"\\n\\n**Error connecting to Gemini API:** {str(e)}"
+                    return
+                wait_time = (2 ** attempt) + 1
+                yield f"\\n\\n*Server busy (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...*\\n\\n"
+                import time
+                time.sleep(wait_time)
+            else:
+                yield f"\\n\\n**Error connecting to Gemini API:** {str(e)}"
+                return
 
 if user_input := st.chat_input("Ask me anything about your documents..."):
     st.chat_message("user").markdown(user_input)
